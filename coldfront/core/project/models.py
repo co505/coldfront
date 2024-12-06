@@ -88,6 +88,13 @@ We do not have information about your research. Please provide a detailed descri
         ],
     )
 
+    project_prefix = models.CharField(max_length=3, default="SCW", editable=False)
+    project_index = models.AutoField(unique=True, primary_key=True)
+
+    @property
+    def opportunity_no(self):
+        return f'{self.project_prefix}{self.project_index}'
+
     field_of_science = models.ForeignKey(FieldOfScience, on_delete=models.CASCADE, default=FieldOfScience.DEFAULT_PK)
     status = models.ForeignKey(ProjectStatusChoice, on_delete=models.CASCADE)
     force_review = models.BooleanField(default=False)
