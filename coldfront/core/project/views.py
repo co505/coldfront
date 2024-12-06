@@ -11,6 +11,7 @@ from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib.auth.models import User
+from coldfront.core.project.utils import generate_project_code
 from coldfront.core.utils.common import import_from_settings
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
@@ -52,7 +53,7 @@ from coldfront.core.project.models import (Project,
                                            ProjectUser,
                                            ProjectUserRoleChoice,
                                            ProjectUserStatusChoice,
-                                           ProjectUserMessage, PROJECT_CODE)
+                                           ProjectUserMessage)
 from coldfront.core.publication.models import Publication
 from coldfront.core.research_output.models import ResearchOutput
 from coldfront.core.user.forms import UserSearchForm
@@ -72,6 +73,7 @@ if EMAIL_ENABLED:
     EMAIL_SENDER = import_from_settings('EMAIL_SENDER')
 
 PROJECT_CODE = import_from_settings('PROJECT_CODE', False)
+PROJECT_CODE_PADDING = import_from_settings('PROJECT_CODE_PADDING', False)
 
 logger = logging.getLogger(__name__)
 
@@ -178,7 +180,8 @@ class ProjectDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         context['attributes_with_usage'] = attributes_with_usage
         context['project_users'] = project_users
         context['ALLOCATION_ENABLE_ALLOCATION_RENEWAL'] = ALLOCATION_ENABLE_ALLOCATION_RENEWAL
-        context['project_code'] = PROJECT_CODE
+        context['project_code'] = project_obj.project_code
+
         try:
             context['ondemand_url'] = settings.ONDEMAND_URL
         except AttributeError:
@@ -283,8 +286,6 @@ class ProjectListView(LoginRequiredMixin, ListView):
 
         context['filter_parameters'] = filter_parameters
         context['filter_parameters_with_order_by'] = filter_parameters_with_order_by
-        context['project_code'] = PROJECT_CODE
-
 
         project_list = context.get('project_list')
         paginator = Paginator(project_list, self.paginate_by)
@@ -297,7 +298,6 @@ class ProjectListView(LoginRequiredMixin, ListView):
             project_list = paginator.page(1)
         except EmptyPage:
             project_list = paginator.page(paginator.num_pages)
-
 
         return context
 
@@ -479,6 +479,14 @@ class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             role=ProjectUserRoleChoice.objects.get(name='Manager'),
             status=ProjectUserStatusChoice.objects.get(name='Active')
         )
+
+        if PROJECT_CODE:
+            '''
+            Set the ProjectCode object, if PROJECT_CODE is defined. 
+            If PROJECT_CODE_PADDING is defined, the set amount of padding will be added to PROJECT_CODE.
+            '''
+            project_obj.project_code = generate_project_code(PROJECT_CODE, project_obj.pk, PROJECT_CODE_PADDING or 0)
+            project_obj.save(update_fields=["project_code"])
 
         return super().form_valid(form)
 

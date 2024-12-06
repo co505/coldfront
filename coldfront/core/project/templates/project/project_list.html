@@ -71,14 +71,13 @@ Project List
             <a href="?order_by=status&direction=asc&{{filter_parameters}}"><i class="fas fa-sort-up" aria-hidden="true"></i><span class="sr-only">Sort Status asc</span></a>
             <a href="?order_by=status&direction=des&{{filter_parameters}}"><i class="fas fa-sort-down" aria-hidden="true"></i><span class="sr-only">Sort Status desc</span></a>
           </th>
-
         </tr>
       </thead>
       <tbody>
         {% for project in project_list %}
           <tr>
-            {% if project_code and project.project_id %}
-                <td><a href="/project/{{project.id}}/">{{ project.project_id }}</a></td>
+            {% if project.project_code %}
+                <td><a href="/project/{{project.id}}/">{{ project.project_code }}</a></td>
             {% else %}
                 <td><a href="/project/{{project.id}}/">{{ project.id }}</a></td>
             {% endif %}

@@ -15,9 +15,6 @@ from coldfront.core.field_of_science.models import FieldOfScience
 from coldfront.core.utils.common import import_from_settings
 
 PROJECT_ENABLE_PROJECT_REVIEW = import_from_settings('PROJECT_ENABLE_PROJECT_REVIEW', False)
-PROJECT_CODE = import_from_settings('PROJECT_CODE', False)
-PROJECT_CODE_PADDING = import_from_settings('PROJECT_CODE_PADDING', False)
-
 
 class ProjectPermission(Enum):
     """ A project permission stores the user, manager, pi, and update fields of a project. """
@@ -91,15 +88,12 @@ We do not have information about your research. Please provide a detailed descri
         ],
     )
 
-
     field_of_science = models.ForeignKey(FieldOfScience, on_delete=models.CASCADE, default=FieldOfScience.DEFAULT_PK)
     status = models.ForeignKey(ProjectStatusChoice, on_delete=models.CASCADE)
     force_review = models.BooleanField(default=False)
     requires_review = models.BooleanField(default=True)
     history = HistoricalRecords()
     objects = ProjectManager()
-    project_id = models.CharField(max_length=20, blank=True, null=True)
-
 
     def clean(self):
         """ Validates the project and raises errors if the project is invalid. """
@@ -109,8 +103,6 @@ We do not have information about your research. Please provide a detailed descri
 
         if 'We do not have information about your research. Please provide a detailed description of your work and update your field of science. Thank you!' in self.description:
             raise ValidationError('You must update the project description.')
-
-
 
     @property
     def last_project_review(self):
@@ -185,23 +177,6 @@ We do not have information about your research. Please provide a detailed descri
 
         return False
 
-    @property
-    def create_project_code(self):
-        """
-        Returns:
-            PROJECT_CODE: the project code associated with this project, if this environment variable is defined
-            PROJECT_CODE_PADDING: Number of leading zeros before the project code, if this environment variable is defined
-        """
-
-        if self.pk and PROJECT_CODE_PADDING:
-            return f"{PROJECT_CODE}{str(self.pk).zfill(PROJECT_CODE_PADDING)}"
-
-        if self.pk:
-            return f"{PROJECT_CODE}{self.pk}"
-
-        return None
-
-
     def user_permissions(self, user):
         """
         Params:
@@ -244,19 +219,11 @@ We do not have information about your research. Please provide a detailed descri
         perms = self.user_permissions(user)
         return perm in perms
 
-
     def __str__(self):
         return self.title
 
     def natural_key(self):
         return (self.title,) + self.pi.natural_key()
-
-    def save(self, *args, **kwargs):
-        if PROJECT_CODE:
-            self.project_id = self.create_project_code
-
-        return super().save(*args, **kwargs)
-
 
 class ProjectAdminComment(TimeStampedModel):
     """ A project admin comment is a comment that an admin can make on a project. 
