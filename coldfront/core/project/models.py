@@ -97,11 +97,6 @@ We do not have information about your research. Please provide a detailed descri
     objects = ProjectManager()
     project_id = models.CharField(max_length=50, blank=True, null=True)
 
-    @property
-    def another(self):
-        return "BUG%d" % (self.pk)
-        # not sure why the above string formatting not working for you.
-        # you can simply do:
 
 
 
