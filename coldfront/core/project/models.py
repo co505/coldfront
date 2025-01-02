@@ -88,12 +88,6 @@ We do not have information about your research. Please provide a detailed descri
         ],
     )
 
-    project_prefix = models.CharField(max_length=3, default="SCW", editable=False)
-    project_index = models.AutoField(unique=True, primary_key=True)
-
-    @property
-    def opportunity_no(self):
-        return f'{self.project_prefix}{self.project_index}'
 
     field_of_science = models.ForeignKey(FieldOfScience, on_delete=models.CASCADE, default=FieldOfScience.DEFAULT_PK)
     status = models.ForeignKey(ProjectStatusChoice, on_delete=models.CASCADE)
@@ -101,6 +95,16 @@ We do not have information about your research. Please provide a detailed descri
     requires_review = models.BooleanField(default=True)
     history = HistoricalRecords()
     objects = ProjectManager()
+    project_id = models.CharField(max_length=50, blank=True, null=True)
+
+    @property
+    def another(self):
+        return "BUG%d" % (self.pk)
+        # not sure why the above string formatting not working for you.
+        # you can simply do:
+
+
+
 
     def clean(self):
         """ Validates the project and raises errors if the project is invalid. """
@@ -110,6 +114,8 @@ We do not have information about your research. Please provide a detailed descri
 
         if 'We do not have information about your research. Please provide a detailed description of your work and update your field of science. Thank you!' in self.description:
             raise ValidationError('You must update the project description.')
+
+
 
     @property
     def last_project_review(self):
@@ -184,6 +190,7 @@ We do not have information about your research. Please provide a detailed descri
 
         return False
 
+
     def user_permissions(self, user):
         """
         Params:
@@ -231,6 +238,14 @@ We do not have information about your research. Please provide a detailed descri
 
     def natural_key(self):
         return (self.title,) + self.pi.natural_key()
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super().save(*args, **kwargs)
+
+        self.project_id = f"SCW{self.pk}"
+        super().save(*args, **kwargs)
+
 
 class ProjectAdminComment(TimeStampedModel):
     """ A project admin comment is a comment that an admin can make on a project. 
