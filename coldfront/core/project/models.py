@@ -15,6 +15,7 @@ from coldfront.core.field_of_science.models import FieldOfScience
 from coldfront.core.utils.common import import_from_settings
 
 PROJECT_ENABLE_PROJECT_REVIEW = import_from_settings('PROJECT_ENABLE_PROJECT_REVIEW', False)
+PROJECT_CODE = import_from_settings('PROJECT_CODE', False)
 
 class ProjectPermission(Enum):
     """ A project permission stores the user, manager, pi, and update fields of a project. """
@@ -96,9 +97,6 @@ We do not have information about your research. Please provide a detailed descri
     history = HistoricalRecords()
     objects = ProjectManager()
     project_id = models.CharField(max_length=50, blank=True, null=True)
-
-
-
 
 
     def clean(self):
@@ -186,6 +184,7 @@ We do not have information about your research. Please provide a detailed descri
         return False
 
 
+
     def user_permissions(self, user):
         """
         Params:
@@ -228,6 +227,15 @@ We do not have information about your research. Please provide a detailed descri
         perms = self.user_permissions(user)
         return perm in perms
 
+    def project_code_db_table(self):
+
+        if not PROJECT_CODE:
+            return False
+
+
+        return self.project_id
+
+
     def __str__(self):
         return self.title
 
@@ -235,10 +243,13 @@ We do not have information about your research. Please provide a detailed descri
         return (self.title,) + self.pi.natural_key()
 
     def save(self, *args, **kwargs):
+        if not PROJECT_CODE:
+            return False
+
         if not self.pk:
             super().save(*args, **kwargs)
 
-        self.project_id = f"SCW{self.pk}"
+        self.project_id = f"{PROJECT_CODE}{self.pk}"
         super().save(*args, **kwargs)
 
 
