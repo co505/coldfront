@@ -252,11 +252,10 @@ We do not have information about your research. Please provide a detailed descri
         return (self.title,) + self.pi.natural_key()
 
     def save(self, *args, **kwargs):
-        if not PROJECT_CODE:
-            return False
+        if PROJECT_CODE:
+            self.project_id = self.create_project_code
 
-        self.project_id = self.create_project_code
-        super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
 
 class ProjectAdminComment(TimeStampedModel):
