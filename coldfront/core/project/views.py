@@ -285,6 +285,7 @@ class ProjectListView(LoginRequiredMixin, ListView):
         context['filter_parameters_with_order_by'] = filter_parameters_with_order_by
         context['project_code'] = PROJECT_CODE
 
+
         project_list = context.get('project_list')
         paginator = Paginator(project_list, self.paginate_by)
 
