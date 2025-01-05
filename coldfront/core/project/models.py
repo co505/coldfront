@@ -227,15 +227,6 @@ We do not have information about your research. Please provide a detailed descri
         perms = self.user_permissions(user)
         return perm in perms
 
-    def project_code_db_table(self):
-
-        if not PROJECT_CODE:
-            return False
-
-
-        return self.project_id
-
-
     def __str__(self):
         return self.title
 
