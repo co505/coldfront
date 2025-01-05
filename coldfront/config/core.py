@@ -99,3 +99,4 @@ request an account through a university faculty member.
 #------------------------------------------------------------------------------
 
 PROJECT_CODE = ENV.str('PROJECT_CODE', default=None)
+PROJECT_CODE_PADDING = ENV.int('PROJECT_CODE_PADDING', default=None)

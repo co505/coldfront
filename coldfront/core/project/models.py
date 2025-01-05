@@ -16,6 +16,8 @@ from coldfront.core.utils.common import import_from_settings
 
 PROJECT_ENABLE_PROJECT_REVIEW = import_from_settings('PROJECT_ENABLE_PROJECT_REVIEW', False)
 PROJECT_CODE = import_from_settings('PROJECT_CODE', False)
+PROJECT_CODE_PADDING = import_from_settings('PROJECT_CODE_PADDING', False)
+
 
 class ProjectPermission(Enum):
     """ A project permission stores the user, manager, pi, and update fields of a project. """
@@ -96,7 +98,7 @@ We do not have information about your research. Please provide a detailed descri
     requires_review = models.BooleanField(default=True)
     history = HistoricalRecords()
     objects = ProjectManager()
-    project_id = models.CharField(max_length=50, blank=True, null=True)
+    project_id = models.CharField(max_length=20, blank=True, null=True)
 
 
     def clean(self):
@@ -183,6 +185,21 @@ We do not have information about your research. Please provide a detailed descri
 
         return False
 
+    @property
+    def create_project_code(self):
+        """
+        Returns:
+            PROJECT_CODE: the project code associated with this project, if this environment variable is defined
+            PROJECT_CODE_PADDING: Number of leading zeros before the project code, if this environment variable is defined
+        """
+
+        if self.pk and PROJECT_CODE_PADDING:
+            return f"{PROJECT_CODE}{str(self.pk).zfill(PROJECT_CODE_PADDING)}"
+
+        if self.pk:
+            return f"{PROJECT_CODE}{self.pk}"
+
+        return None
 
 
     def user_permissions(self, user):
@@ -227,6 +244,7 @@ We do not have information about your research. Please provide a detailed descri
         perms = self.user_permissions(user)
         return perm in perms
 
+
     def __str__(self):
         return self.title
 
@@ -237,10 +255,7 @@ We do not have information about your research. Please provide a detailed descri
         if not PROJECT_CODE:
             return False
 
-        if not self.pk:
-            super().save(*args, **kwargs)
-
-        self.project_id = f"{PROJECT_CODE}{self.pk}"
+        self.project_id = self.create_project_code
         super().save(*args, **kwargs)
 
 
