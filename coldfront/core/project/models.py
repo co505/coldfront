@@ -480,22 +480,6 @@ class ProjectCode(TimeStampedModel):
     project_code = models.CharField(max_length=10, blank=True, null=True)
     institution = models.CharField(max_length=4, blank=True, null=True)
 
-    def create_project_code(self):
-        """
-        Returns:
-            PROJECT_CODE: the project code associated with this project, if this environment variable is defined
-            PROJECT_CODE_PADDING: Number of leading zeros before the project code, if this environment variable is defined
-        """
-
-        if self.project.pk and PROJECT_CODE_PADDING:
-            return f"{PROJECT_CODE}{str(self.project.pk).zfill(PROJECT_CODE_PADDING)}"
-
-
-        if self.project.pk:
-            return f"{PROJECT_CODE}{self.project.pk}"
-
-        return None
-
     def __str__(self):
         return self.create_project_code()
 

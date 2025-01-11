@@ -1,3 +1,6 @@
+from coldfront.config.core import PROJECT_CODE
+from coldfront.core.utils.common import import_from_settings
+
 
 def add_project_status_choices(apps, schema_editor):
     ProjectStatusChoice = apps.get_model('project', 'ProjectStatusChoice')
@@ -18,3 +21,19 @@ def add_project_user_status_choices(apps, schema_editor):
 
     for choice in ['Active', 'Pending Remove', 'Denied', 'Removed', ]:
         ProjectUserStatusChoice.objects.get_or_create(name=choice)
+
+
+def create_project_code(project_obj):
+    PROJECT_CODE = import_from_settings('PROJECT_CODE', False)
+    PROJECT_CODE_PADDING = import_from_settings('PROJECT_CODE_PADDING', False)
+
+    if PROJECT_CODE and PROJECT_CODE_PADDING:
+        return f"{PROJECT_CODE}{str(project_obj.pk).zfill(PROJECT_CODE_PADDING)}"
+
+
+    if PROJECT_CODE:
+        return f"{PROJECT_CODE}{project_obj.pk}"
+
+    return None
+
+
