@@ -33,3 +33,15 @@ def create_project_code(project_obj, PROJECT_CODE, PROJECT_CODE_PADDING):
     return None
 
 
+def create_institution_code(project_obj, PROJECT_CODE, PROJECT_CODE_PADDING): 
+
+    if PROJECT_CODE and PROJECT_CODE_PADDING:
+        return f"{PROJECT_CODE}{str(project_obj.pk).zfill(PROJECT_CODE_PADDING)}"
+
+
+    if PROJECT_CODE:
+        return f"{PROJECT_CODE}{project_obj.pk}"
+
+    return None
+
+
