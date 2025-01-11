@@ -17,7 +17,7 @@ from coldfront.core.utils.common import import_from_settings
 PROJECT_ENABLE_PROJECT_REVIEW = import_from_settings('PROJECT_ENABLE_PROJECT_REVIEW', False)
 PROJECT_CODE = import_from_settings('PROJECT_CODE', False)
 PROJECT_CODE_PADDING = import_from_settings('PROJECT_CODE_PADDING', False)
-INSTITUTION_CODE = import_from_settings('INSTITUTION_CODE', FALSE)
+INSTITUTION_CODE = import_from_settings('INSTITUTION_CODE', False)
 
 class ProjectPermission(Enum):
     """ A project permission stores the user, manager, pi, and update fields of a project. """
@@ -98,8 +98,6 @@ We do not have information about your research. Please provide a detailed descri
     requires_review = models.BooleanField(default=True)
     history = HistoricalRecords()
     objects = ProjectManager()
-    project_id = models.CharField(max_length=10, blank=True, null=True)
-    institution = models.CharField(max_length=4, blank=True, null=True) 
 
     def clean(self):
         """ Validates the project and raises errors if the project is invalid. """
@@ -185,34 +183,6 @@ We do not have information about your research. Please provide a detailed descri
 
         return False
 
-    @property
-    def create_project_code(self):
-        """
-        Returns:
-            PROJECT_CODE: the project code associated with this project, if this environment variable is defined
-            PROJECT_CODE_PADDING: Number of leading zeros before the project code, if this environment variable is defined
-        """
-
-        if self.pk and PROJECT_CODE_PADDING:
-            return f"{PROJECT_CODE}{str(self.pk).zfill(PROJECT_CODE_PADDING)}"
-
-        if self.pk:
-            return f"{PROJECT_CODE}{self.pk}"
-
-        return None
-
-
-    @property
-    def create_institution_code(self):
-        """
-        Returns:
-        """
-        
-        if self.pk:
-            return f"{INSTITUTION_CODE}"
-        
-        return None
-
     def user_permissions(self, user):
         """
         Params:
@@ -262,15 +232,6 @@ We do not have information about your research. Please provide a detailed descri
     def natural_key(self):
         return (self.title,) + self.pi.natural_key()
 
-
-    def save(self, *args, **kwargs):
-        if PROJECT_CODE:
-            self.project_id = self.create_project_code
-
-        if INSTITUTION_CODE:
-            self.institution = self.create_institution_code
-
-        return super().save(*args, **kwargs)
 
 
 class ProjectAdminComment(TimeStampedModel):
@@ -510,4 +471,38 @@ class ProjectAttributeUsage(TimeStampedModel):
     history = HistoricalRecords()
 
     def __str__(self):
-        return '{}: {}'.format(self.project_attribute.proj_attr_type.name, self.value)
+        return '{}: {}'.format(self.project_attribute.proj_attr_type.name, self.value) 
+
+
+
+class ProjectCode(TimeStampedModel):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project_code = models.CharField(max_length=10, blank=True, null=True)
+    institution = models.CharField(max_length=4, blank=True, null=True)
+
+    def create_project_code(self):
+        """
+        Returns:
+            PROJECT_CODE: the project code associated with this project, if this environment variable is defined
+            PROJECT_CODE_PADDING: Number of leading zeros before the project code, if this environment variable is defined
+        """
+
+        if self.project.pk and PROJECT_CODE_PADDING:
+            self.project_code = f"{PROJECT_CODE}{str(self.pk).zfill(PROJECT_CODE_PADDING)}"
+            return self.project_code
+
+        if self.project.pk:
+            self.project_code = f"{PROJECT_CODE}{self.pk}"
+            return self.project_code
+
+        return None
+
+    def __str__(self):
+        return self.create_project_code()
+
+
+
+
+
+
+

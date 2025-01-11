@@ -52,7 +52,7 @@ from coldfront.core.project.models import (Project,
                                            ProjectUser,
                                            ProjectUserRoleChoice,
                                            ProjectUserStatusChoice,
-                                           ProjectUserMessage, PROJECT_CODE)
+                                           ProjectUserMessage, PROJECT_CODE, ProjectCode)
 from coldfront.core.publication.models import Publication
 from coldfront.core.research_output.models import ResearchOutput
 from coldfront.core.user.forms import UserSearchForm
@@ -478,6 +478,11 @@ class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             project=project_obj,
             role=ProjectUserRoleChoice.objects.get(name='Manager'),
             status=ProjectUserStatusChoice.objects.get(name='Active')
+        )
+
+        project_code_obj = ProjectCode.objects.create(
+            project=project_obj,
+            project_code=PROJECT_CODE
         )
 
         return super().form_valid(form)
