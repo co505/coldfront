@@ -95,8 +95,20 @@ request an account through a university faculty member.
 
 
 #------------------------------------------------------------------------------
-# Provide institution project code.
+# Enable project code.
 #------------------------------------------------------------------------------
 
 PROJECT_CODE = ENV.str('PROJECT_CODE', default=None)
 PROJECT_CODE_PADDING = ENV.int('PROJECT_CODE_PADDING', default=None)
+
+#------------------------------------------------------------------------------
+# Enable project institution code.
+#------------------------------------------------------------------------------
+
+PROJECT_INSTITUTION_CODE = ENV.str('PROJECT_INSTITUTION_CODE', default=None)
+
+
+
+
+
+
