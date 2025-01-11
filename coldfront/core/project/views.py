@@ -486,7 +486,7 @@ class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             # Create the ProjectCode object
             project_code_obj = ProjectCode.objects.create(
                 project=project_obj,
-                project_code=create_project_code(project_obj)  # Create the code for the project
+                project_code=create_project_code(project_obj)
             )
 
         return super().form_valid(form)
