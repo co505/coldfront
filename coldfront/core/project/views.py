@@ -74,6 +74,7 @@ if EMAIL_ENABLED:
     EMAIL_SENDER = import_from_settings('EMAIL_SENDER')
 
 PROJECT_CODE = import_from_settings('PROJECT_CODE', False)
+PROJECT_CODE_PADDING = import_from_settings('PROJECT_CODE_PADDING', False)
 
 logger = logging.getLogger(__name__)
 
@@ -486,7 +487,7 @@ class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             # Create the ProjectCode object
             project_code_obj = ProjectCode.objects.create(
                 project=project_obj,
-                project_code=create_project_code(project_obj)
+                project_code=create_project_code(project_obj, PROJECT_CODE, PROJECT_CODE_PADDING)
             )
 
         return super().form_valid(form)
