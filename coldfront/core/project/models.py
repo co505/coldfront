@@ -488,18 +488,16 @@ class ProjectCode(TimeStampedModel):
         """
 
         if self.project.pk and PROJECT_CODE_PADDING:
-            self.project_code = f"{PROJECT_CODE}{str(self.pk).zfill(PROJECT_CODE_PADDING)}"
-            return self.project_code
+            return f"{PROJECT_CODE}{str(self.project.pk).zfill(PROJECT_CODE_PADDING)}"
+
 
         if self.project.pk:
-            self.project_code = f"{PROJECT_CODE}{self.pk}"
-            return self.project_code
+            return f"{PROJECT_CODE}{self.project.pk}"
 
         return None
 
     def __str__(self):
         return self.create_project_code()
-
 
 
 

@@ -480,10 +480,11 @@ class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             status=ProjectUserStatusChoice.objects.get(name='Active')
         )
 
-        project_code_obj = ProjectCode.objects.create(
-            project=project_obj,
-            project_code=PROJECT_CODE
-        )
+        if PROJECT_CODE:
+            project_code_obj = ProjectCode.objects.create(
+                project=project_obj,
+                project_code=ProjectCode(project=project_obj).create_project_code()
+            )
 
         return super().form_valid(form)
 
