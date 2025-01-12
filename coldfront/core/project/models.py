@@ -485,7 +485,7 @@ class ProjectCode(TimeStampedModel):
 
 class ProjectInstitutionCode(TimeStampedModel):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    institution = models.CharField(max_length=4, blank=True, null=True)
+    institution = models.CharField(max_length=10, blank=True, null=True)
 
     def __str__(self):
         return self.institution

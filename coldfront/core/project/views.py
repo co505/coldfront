@@ -503,7 +503,7 @@ class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         if PROJECT_INSTITUTION_CODE:
             project_institution_obj = ProjectInstitutionCode.objects.create(
                 project=project_obj,
-                institution=PROJECT_INSTITUTION_CODE
+                institution=form.data['institution']
             )
 
 
