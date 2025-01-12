@@ -17,6 +17,14 @@ EMAIL_ADMIN_LIST = import_from_settings('EMAIL_ADMIN_LIST', [])
 EMAIL_DIRECTOR_EMAIL_ADDRESS = import_from_settings(
     'EMAIL_DIRECTOR_EMAIL_ADDRESS', '')
 
+class ProjectCreationForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ['title', 'description', 'field_of_science']
+
+
+
+
 
 class ProjectSearchForm(forms.Form):
     """ Search form for the Project list page.
@@ -40,7 +48,7 @@ class ProjectAddUserForm(forms.Form):
     email = forms.EmailField(max_length=100, required=False, disabled=True)
     source = forms.CharField(max_length=16, disabled=True)
     role = forms.ModelChoiceField(
-        queryset=ProjectUserRoleChoice.objects.all(), empty_label=None)
+    queryset=ProjectUserRoleChoice.objects.all(), empty_label=None)
     selected = forms.BooleanField(initial=False, required=False)
 
 

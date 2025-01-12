@@ -1,4 +1,5 @@
 import datetime
+import json
 from pipes import Template
 import pprint
 import django
@@ -45,7 +46,8 @@ from coldfront.core.project.forms import (ProjectAddUserForm,
                                           ProjectReviewForm,
                                           ProjectSearchForm,
                                           ProjectUserUpdateForm,
-                                          ProjectAttributeUpdateForm)
+                                          ProjectAttributeUpdateForm,
+                                          ProjectCreationForm)
 from coldfront.core.project.models import (Project,
                                            ProjectAttribute,
                                            ProjectReview,
@@ -187,6 +189,7 @@ class ProjectDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         context['project_users'] = project_users
         context['ALLOCATION_ENABLE_ALLOCATION_RENEWAL'] = ALLOCATION_ENABLE_ALLOCATION_RENEWAL
         context['project_code'] = PROJECT_CODE
+        context['project_instiution_code'] = PROJECT_INSTITUTION_CODE
         try:
             context['ondemand_url'] = settings.ONDEMAND_URL
         except AttributeError:
@@ -464,8 +467,10 @@ class ProjectArchiveProjectView(LoginRequiredMixin, UserPassesTestMixin, Templat
 class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Project
     template_name_suffix = '_create_form'
-    fields = ['title', 'description', 'field_of_science', ]
+    form_class = ProjectCreationForm
 
+
+ 
     def test_func(self):
         """ UserPassesTestMixin Tests"""
         if self.request.user.is_superuser:
@@ -496,7 +501,7 @@ class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             )
 
         if PROJECT_INSTITUTION_CODE:
-            project_code_obj = ProjectInstitutionCode.objects.create(
+            project_institution_obj = ProjectInstitutionCode.objects.create(
                 project=project_obj,
                 institution=PROJECT_INSTITUTION_CODE
             )

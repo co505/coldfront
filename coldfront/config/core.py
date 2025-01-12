@@ -105,7 +105,7 @@ PROJECT_CODE_PADDING = ENV.int('PROJECT_CODE_PADDING', default=None)
 # Enable project institution code.
 #------------------------------------------------------------------------------
 
-PROJECT_INSTITUTION_CODE = ENV.str('PROJECT_INSTITUTION_CODE', default=None)
+PROJECT_INSTITUTION_CODE = ENV.list('PROJECT_INSTITUTION_CODE', default=None)
 
 
 
