@@ -16,14 +16,16 @@ EMAIL_DIRECTOR_PENDING_PROJECT_REVIEW_EMAIL = import_from_settings(
 EMAIL_ADMIN_LIST = import_from_settings('EMAIL_ADMIN_LIST', [])
 EMAIL_DIRECTOR_EMAIL_ADDRESS = import_from_settings(
     'EMAIL_DIRECTOR_EMAIL_ADDRESS', '')
+PROJECT_INSTITUTION_CODE = import_from_settings('PROJECT_INSTITUTION_CODE', [])
 
 class ProjectCreationForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ['title', 'description', 'field_of_science']
 
-
-
+    if PROJECT_INSTITUTION_CODE:
+         institution_code = [(item, item) for item in PROJECT_INSTITUTION_CODE]
+         institution = forms.ChoiceField(choices=institution_code)
 
 
 class ProjectSearchForm(forms.Form):
