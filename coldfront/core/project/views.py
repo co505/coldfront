@@ -187,7 +187,7 @@ class ProjectDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         
         try:
             context['project_code'] = ProjectCode.objects.get(project = project_obj.pk).project_code
-        except AttributeError:
+        except ProjectCode.DoesNotExist:
             pass
 
 
