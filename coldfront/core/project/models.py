@@ -474,11 +474,11 @@ class ProjectAttributeUsage(TimeStampedModel):
 
 
 class ProjectCode(TimeStampedModel):
-    """ Project Code represents a user definied project identifier, built upon project primary key
+    """ Project Code represents a user defined project identifier, built upon project primary key
     
     Attributes:
         project (Project):  link to project primary key
-        project_code (float): user defined environment variable combined with project field
+        project_code (float): user defined environment variable combined with project's primary key
 
     """    
 

@@ -12,7 +12,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib.auth.models import User
 
-from coldfront.core.project.utils import create_project_code
 from coldfront.core.utils.common import import_from_settings
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
@@ -77,7 +76,6 @@ if EMAIL_ENABLED:
 
 PROJECT_CODE = import_from_settings('PROJECT_CODE', False)
 PROJECT_CODE_PADDING = import_from_settings('PROJECT_CODE_PADDING', False)
-PROJECT_INSTITUTION_CODE = import_from_settings('PROJECT_INSTITUTION_CODE', False)
 
 
 logger = logging.getLogger(__name__)
@@ -492,7 +490,10 @@ class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         )
 
         if PROJECT_CODE:
-            # Create the ProjectCode object and store in DB
+            '''
+            Create the ProjectCode object, if PROJECT_CODE is defined. 
+            If PROJECT_CODE_PADDING is defined, the set amount of padding will be added to PROJECT_CODE.
+            '''
             project_code_obj = ProjectCode.objects.create(
                 project=project_obj,
                 project_code= f"{PROJECT_CODE}{str(project_obj.pk).zfill(PROJECT_CODE_PADDING or 0)}"
