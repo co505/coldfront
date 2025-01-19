@@ -21,4 +21,3 @@ db.json
 .env
 .devcontainer/*
 .bin/*
-.idea/
