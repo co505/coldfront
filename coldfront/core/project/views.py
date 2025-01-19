@@ -55,9 +55,8 @@ from coldfront.core.project.models import (Project,
                                            ProjectUserRoleChoice,
                                            ProjectUserStatusChoice,
                                            ProjectUserMessage,
-                                           PROJECT_CODE, 
-                                           ProjectCode,
-                                           ProjectInstitutionCode)
+                                           ProjectCode
+                                           )
 from coldfront.core.publication.models import Publication
 from coldfront.core.research_output.models import ResearchOutput
 from coldfront.core.user.forms import UserSearchForm
@@ -173,7 +172,6 @@ class ProjectDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
             else:
                 allocations = Allocation.objects.prefetch_related(
                     'resources').filter(project=self.object)
-
         context['publications'] = Publication.objects.filter(
             project=self.object, status='Active').order_by('-year')
         context['research_outputs'] = ResearchOutput.objects.filter(
@@ -186,7 +184,13 @@ class ProjectDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         context['attributes_with_usage'] = attributes_with_usage
         context['project_users'] = project_users
         context['ALLOCATION_ENABLE_ALLOCATION_RENEWAL'] = ALLOCATION_ENABLE_ALLOCATION_RENEWAL
-        context['project_code'] = PROJECT_CODE
+        
+        try:
+            context['project_code'] = ProjectCode.objects.get(project = project_obj.pk).project_code
+        except AttributeError:
+            pass
+
+
         try:
             context['ondemand_url'] = settings.ONDEMAND_URL
         except AttributeError:
@@ -219,16 +223,16 @@ class ProjectListView(LoginRequiredMixin, ListView):
         if project_search_form.is_valid():
             data = project_search_form.cleaned_data
             if data.get('show_all_projects') and (self.request.user.is_superuser or self.request.user.has_perm('project.can_view_all_projects')):
-                projects = Project.objects.prefetch_related('pi', 'field_of_science', 'status',).filter(
+                projects = Project.objects.prefetch_related('pi', 'field_of_science', 'status', 'projectcode').filter(
                     status__name__in=['New', 'Active', ]).order_by(order_by)
             else:
-                projects = Project.objects.prefetch_related('pi', 'field_of_science', 'status',).filter(
+                projects = Project.objects.prefetch_related('pi', 'field_of_science', 'status', 'projectcode').filter(
                     Q(status__name__in=['New', 'Active', ]) &
                     Q(projectuser__user=self.request.user) &
                     Q(projectuser__status__name='Active')
                 ).order_by(order_by)
 
-            # Last Name
+            # Last Nam
             if data.get('last_name'):
                 projects = projects.filter(
                     pi__last_name__icontains=data.get('last_name'))
@@ -247,7 +251,7 @@ class ProjectListView(LoginRequiredMixin, ListView):
                     field_of_science__description__icontains=data.get('field_of_science'))
 
         else:
-            projects = Project.objects.prefetch_related('pi', 'field_of_science', 'status',).filter(
+            projects = Project.objects.prefetch_related('pi', 'field_of_science', 'status', 'projectcode').filter(
                 Q(status__name__in=['New', 'Active', ]) &
                 Q(projectuser__user=self.request.user) &
                 Q(projectuser__status__name='Active')
@@ -288,11 +292,10 @@ class ProjectListView(LoginRequiredMixin, ListView):
 
         if filter_parameters:
             context['expand_accordion'] = 'show'
-
+      
+         
         context['filter_parameters'] = filter_parameters
         context['filter_parameters_with_order_by'] = filter_parameters_with_order_by
-        context['project_code'] = PROJECT_CODE
-
 
         project_list = context.get('project_list')
         paginator = Paginator(project_list, self.paginate_by)
@@ -489,18 +492,11 @@ class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         )
 
         if PROJECT_CODE:
-            # Create the ProjectCode object
+            # Create the ProjectCode object and store in DB
             project_code_obj = ProjectCode.objects.create(
                 project=project_obj,
-                project_code=create_project_code(project_obj, PROJECT_CODE, PROJECT_CODE_PADDING)
-            )
-
-        if PROJECT_INSTITUTION_CODE:
-            project_code_obj = ProjectInstitutionCode.objects.create(
-                project=project_obj,
-                institution=PROJECT_INSTITUTION_CODE
-            )
-
+                project_code= f"{PROJECT_CODE}{str(project_obj.pk).zfill(PROJECT_CODE_PADDING or 0)}"
+        ) 
 
         return super().form_valid(form)
 
@@ -637,7 +633,6 @@ class ProjectAddUsersSearchResultsView(LoginRequiredMixin, UserPassesTestMixin, 
         else:
             div_allocation_class = 'd-none'
         context['div_allocation_class'] = div_allocation_class
-        ###
 
         allocation_form = ProjectAddUsersToAllocationForm(
             request.user, project_obj.pk, prefix='allocationform')
