@@ -94,6 +94,7 @@ We do not have information about your research. Please provide a detailed descri
     requires_review = models.BooleanField(default=True)
     history = HistoricalRecords()
     objects = ProjectManager()
+    institution = models.CharField(max_length=10, blank=True, default='None')
 
     def clean(self):
         """ Validates the project and raises errors if the project is invalid. """

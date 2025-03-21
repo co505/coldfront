@@ -17,6 +17,7 @@ EMAIL_ADMIN_LIST = import_from_settings('EMAIL_ADMIN_LIST', [])
 EMAIL_DIRECTOR_EMAIL_ADDRESS = import_from_settings(
     'EMAIL_DIRECTOR_EMAIL_ADDRESS', '')
 
+PROJECT_INSTITUTION_LIST = import_from_settings('PROJECT_INSTITUTION_LIST', [])
 
 class ProjectSearchForm(forms.Form):
     """ Search form for the Project list page.
@@ -190,3 +191,14 @@ class ProjectAttributeUpdateForm(forms.Form):
             proj_attr = ProjectAttribute.objects.get(pk=cleaned_data.get('pk'))
             proj_attr.value = cleaned_data.get('new_value')
             proj_attr.clean()
+
+class ProjectCreationForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ['title', 'description', 'field_of_science']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if PROJECT_INSTITUTION_LIST:
+            institution_code = [(item, item) for item in PROJECT_INSTITUTION_LIST]
+            self.fields['institution'] = forms.ChoiceField(choices=institution_code)

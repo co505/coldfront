@@ -11,6 +11,7 @@ from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib.auth.models import User
+from coldfront.core.project.utils import add_automated_institution_choice, add_manual_institution_choice
 from coldfront.core.utils.common import import_from_settings
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
@@ -43,7 +44,8 @@ from coldfront.core.project.forms import (ProjectAddUserForm,
                                           ProjectReviewForm,
                                           ProjectSearchForm,
                                           ProjectUserUpdateForm,
-                                          ProjectAttributeUpdateForm)
+                                          ProjectAttributeUpdateForm,
+                                          ProjectCreationForm)
 from coldfront.core.project.models import (Project,
                                            ProjectAttribute,
                                            ProjectReview,
@@ -72,6 +74,8 @@ if EMAIL_ENABLED:
     EMAIL_SENDER = import_from_settings('EMAIL_SENDER')
 
 logger = logging.getLogger(__name__)
+PROJECT_INSTITUTION_LIST = import_from_settings('PROJECT_INSTITUTION_LIST', False)
+PROJECT_INSTITUTION_EMAIL_MAP = import_from_settings('PROJECT_INSTITUTION_EMAIL_MAP', False)
 
 class ProjectDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Project
@@ -176,6 +180,8 @@ class ProjectDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         context['attributes_with_usage'] = attributes_with_usage
         context['project_users'] = project_users
         context['ALLOCATION_ENABLE_ALLOCATION_RENEWAL'] = ALLOCATION_ENABLE_ALLOCATION_RENEWAL
+        context['PROJECT_INSTITUTION_LIST'] = PROJECT_INSTITUTION_LIST
+        context['PROJECT_INSTITUTION_EMAIL_MAP'] = PROJECT_INSTITUTION_EMAIL_MAP
 
         try:
             context['ondemand_url'] = settings.ONDEMAND_URL
@@ -451,7 +457,7 @@ class ProjectArchiveProjectView(LoginRequiredMixin, UserPassesTestMixin, Templat
 class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Project
     template_name_suffix = '_create_form'
-    fields = ['title', 'description', 'field_of_science', ]
+    form_class = ProjectCreationForm
 
     def test_func(self):
         """ UserPassesTestMixin Tests"""
@@ -474,6 +480,16 @@ class ProjectCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             role=ProjectUserRoleChoice.objects.get(name='Manager'),
             status=ProjectUserStatusChoice.objects.get(name='Active')
         )
+
+        if PROJECT_INSTITUTION_LIST and PROJECT_INSTITUTION_EMAIL_MAP:
+            """
+                If both features are enabled, pass, to avoid duplicate data being stored.           
+            """
+            pass
+        elif PROJECT_INSTITUTION_LIST:
+            add_manual_institution_choice(project_obj, form)
+        elif PROJECT_INSTITUTION_EMAIL_MAP:
+            add_automated_institution_choice(project_obj, PROJECT_INSTITUTION_EMAIL_MAP)
 
         return super().form_valid(form)
 

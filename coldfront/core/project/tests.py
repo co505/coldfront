@@ -1,8 +1,10 @@
 import logging
+from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 
+from coldfront.core.project.utils import add_automated_institution_choice, add_manual_institution_choice
 from coldfront.core.test_helpers.factories import (
     UserFactory,
     ProjectFactory,
@@ -205,3 +207,61 @@ class TestProjectAttribute(TestCase):
         )
         with self.assertRaises(ValidationError):
             new_attr.clean()
+
+class TestInstitution(TransactionTestCase):
+    """Tear down database after each run to prevent conflicts across cases """
+    reset_sequences = True
+
+    def setUp(self):
+        self.user = UserFactory(username='capeo')
+        self.field_of_science = FieldOfScienceFactory(description='Physics')
+        self.status = ProjectStatusChoiceFactory(name='Active')
+
+
+    def create_project_with_institution(self, title, institution_dict = None, institution_list = None):
+        """Helper method to create a project and assign a institution value based on the argument passed"""
+        # Project Creation
+        project = Project.objects.create(
+            title=title,
+            pi=self.user,
+            status=self.status,
+            field_of_science=self.field_of_science,
+        )
+
+        if institution_dict and institution_list:
+            pass
+        elif institution_dict:
+            add_automated_institution_choice(project, institution_dict)
+        elif institution_list:
+            add_manual_institution_choice(project, institution_list)
+
+        project.save()
+
+        return project.institution
+
+    @patch('coldfront.config.core.PROJECT_INSTITUTION_EMAIL_MAP', {'inst.ac.com': 'AC', 'inst.edu.com': 'EDU', 'bfo.ac.uk': 'BFO'})
+    @patch('coldfront.config.core.PROJECT_INSTITUTION_LIST', ['test_one', 'test_two', 'test_three'] )
+    def test_institution_is_none(self):
+        from coldfront.config.core import PROJECT_INSTITUTION_EMAIL_MAP
+        from coldfront.config.core import PROJECT_INSTITUTION_LIST
+        """Test to check if institution is none after both env vars are enabled. """
+
+        # Create project with both institution
+        project_institution = self.create_project_with_institution('Project 1', PROJECT_INSTITUTION_LIST, PROJECT_INSTITUTION_EMAIL_MAP)
+
+        # Create the first project
+        self.assertEqual(project_institution, 'None')
+
+
+    @patch('coldfront.config.core.PROJECT_INSTITUTION_EMAIL_MAP', {'inst.ac.com': 'AC', 'inst.edu.com': 'EDU', 'bfo.ac.uk': 'BFO'})
+    @patch('coldfront.config.core.PROJECT_INSTITUTION_LIST', ['test_one', 'test_two', 'test_three'] )
+    def test_institution_is_none(self):
+        from coldfront.config.core import PROJECT_INSTITUTION_EMAIL_MAP
+        from coldfront.config.core import PROJECT_INSTITUTION_LIST
+        """Test to check if institution is none after both env vars are enabled. """
+
+        # Create project with both institution
+        project_institution = self.create_project_with_institution('Project 1', PROJECT_INSTITUTION_LIST, PROJECT_INSTITUTION_EMAIL_MAP)
+
+        # Create the first project
+        self.assertEqual(project_institution, 'None')

@@ -92,3 +92,10 @@ ACCOUNT_CREATION_TEXT = '''University faculty can submit a help ticket to reques
 Please see <a href="#">instructions on our website</a>. Staff, students, and external collaborators must
 request an account through a university faculty member.
 '''
+
+#------------------------------------------------------------------------------
+# Enable project institution code feature.
+#------------------------------------------------------------------------------
+
+PROJECT_INSTITUTION_LIST = ENV.list('PROJECT_INSTITUTION_LIST', default=None)
+PROJECT_INSTITUTION_EMAIL_MAP = ENV.dict('PROJECT_INSTITUTION_EMAIL_MAP', default={})
