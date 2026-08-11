@@ -20,6 +20,7 @@ from coldfront.plugins.slurm.utils import (
     SLURM_PARENT_ATTRIBUTE_NAME,
     SLURM_SPECS_ATTRIBUTE_NAME,
     SLURM_USER_SPECS_ATTRIBUTE_NAME,
+    SLURM_PARENT_DEFAULT_ENABLED,
     SlurmError,
     parse_qos,
 )
@@ -136,16 +137,21 @@ class SlurmCluster(SlurmBase):
             cluster.add_allocation(allocation, allocations, user_specs=user_specs)
         # assign child accounts to parents
         child_accounts = set()
-        for account in cluster.accounts.values():
+        for account in list(cluster.accounts.values()):
             if not account.parent_account_name:
                 continue
             parent_account = cluster.accounts.get(account.parent_account_name)
             if not parent_account:
-                logger.error(
-                    f"Skipping account {account.name} - could not find parent allocation {SLURM_ACCOUNT_ATTRIBUTE_NAME}={account.parent_account_name} for allocation {SLURM_ACCOUNT_ATTRIBUTE_NAME}={account.name} in current resource. Is the parent allocation active?"
-                    # Don't have an easy way to get the resource here
-                )
-                continue
+                if SLURM_PARENT_DEFAULT_ENABLED:
+                    parent_account = SlurmAccount(account.parent_account_name)
+                    parent_account.is_external_parent = True
+                    cluster.accounts[account.parent_account_name] = parent_account
+                else:
+                    logger.error(
+                        f"Skipping account {account.name} - could not find parent allocation {SLURM_ACCOUNT_ATTRIBUTE_NAME}={account.parent_account_name} for allocation {SLURM_ACCOUNT_ATTRIBUTE_NAME}={account.name} in current resource. Is the parent allocation active?"
+                        # Don't have an easy way to get the resource here
+                    )
+                    continue
             parent_account.add_account(account)
             child_accounts.add(account.name)
         # remove child accounts from cluster accounts
@@ -162,7 +168,7 @@ class SlurmCluster(SlurmBase):
                 cluster.add_allocation(allocation, allocations, specs=partition_specs, user_specs=partition_user_specs)
             # remove child accounts cluster accounts
             child_accounts = set()
-            for account in cluster.accounts.values():
+            for account in list(cluster.accounts.values()):
                 child_accounts.update(account.accounts.keys())
             for account_name in child_accounts:
                 del cluster.accounts[account_name]
@@ -218,7 +224,8 @@ class SlurmCluster(SlurmBase):
             "qoses": [],
         }
         for account_name, account in self.accounts.items():
-            if account_name == "root":
+            expected_account = expected.accounts.get(account_name)
+            if account_name == "root" or (expected_account and expected_account.is_external_parent):
                 continue
             child_objects_to_remove = account.get_objects_to_remove(expected.accounts.get(account_name))
             for key, value in child_objects_to_remove.items():
@@ -231,6 +238,8 @@ class SlurmAccount(SlurmBase):
         super().__init__(name, specs=specs)
         self.users: dict[str, SlurmUser] = {}
         self.accounts: dict[str, SlurmAccount] = {}
+        self.parent_account_name = None
+        self.is_external_parent = False
 
     @staticmethod
     def new_from_sacctmgr(line):
@@ -294,7 +303,7 @@ class SlurmAccount(SlurmBase):
         return None
 
     def write(self, out):
-        if self.name != "root":
+        if self.name != "root" and not self.is_external_parent:
             self._write(out, f"Account - '{self.name}':{self.format_specs()}\n")
 
     def write_children(self, out):
