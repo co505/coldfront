@@ -32,6 +32,8 @@ AUTO_COMPUTE_ALLOCATION_SLURM_ATTR_TUPLE_TRAINING = import_from_settings(
     "AUTO_COMPUTE_ALLOCATION_SLURM_ATTR_TUPLE_TRAINING"
 )
 
+PROJECT_INSTITUTION_EMAIL_MAP = import_from_settings("PROJECT_INSTITUTION_EMAIL_MAP")
+
 
 # automatically create a compute allocation, called by project_new signal
 def add_auto_compute_allocation(project_obj):
@@ -71,6 +73,8 @@ def add_auto_compute_allocation(project_obj):
     allocation_attribute_type_obj_slurm_specs = AllocationAttributeType.objects.get(name="slurm_specs")
     # slurm user specs
     allocation_attribute_type_obj_slurm_user_specs = AllocationAttributeType.objects.get(name="slurm_user_specs")
+    # slurm parents
+    allocation_attribute_type_obj_slurm_parent = AllocationAttributeType.objects.get(name="slurm_parent")
 
     try:
         # create the allocation and return it
@@ -115,6 +119,26 @@ def add_auto_compute_allocation(project_obj):
         )
     except Exception as e:
         logger.error("Failed to add fairshare value to auto_compute_allocation: %s", e)
+
+    try:
+        if project_obj.institution in [None, "", "None"]:
+            logger.info(
+                "No institution value found. Required for slurm_parent allocation.",
+                {project_obj.institution},
+            )
+            logger.info(
+                "Additional message - this issue was encountered with project pk",
+                {project_obj.pk},
+            )
+            return None
+
+        allocation_auto_compute_attribute_create(
+            allocation_attribute_type_obj_slurm_parent,
+            allocation_obj,
+            project_obj.institution.lower()
+        )
+    except Exception as e:
+        logger.error("Failed to add slurm parent value to auto_compute_allocation: %s", e)
 
     if project_obj.field_of_science.description != "Training":
         # 1a) add accelerator hours non-training project - for gauge to appear
