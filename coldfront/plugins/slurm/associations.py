@@ -20,6 +20,7 @@ from coldfront.plugins.slurm.utils import (
     SLURM_PARENT_ATTRIBUTE_NAME,
     SLURM_SPECS_ATTRIBUTE_NAME,
     SLURM_USER_SPECS_ATTRIBUTE_NAME,
+    SLURM_DEFAULT_PARENT,
     SlurmError,
     parse_qos,
 )
@@ -130,6 +131,11 @@ class SlurmCluster(SlurmBase):
 
         cluster = SlurmCluster(name, specs)
 
+        if SLURM_DEFAULT_PARENT:
+            default_parent = SlurmAccount(SLURM_DEFAULT_PARENT)
+            default_parent.is_default_parent = True
+            cluster.accounts[SLURM_DEFAULT_PARENT] = default_parent
+
         # Process allocations
         allocations = resource.allocation_set.filter(status__name__in=["Active", "Renewal Requested"])
         for allocation in allocations:
@@ -218,7 +224,7 @@ class SlurmCluster(SlurmBase):
             "qoses": [],
         }
         for account_name, account in self.accounts.items():
-            if account_name == "root":
+            if account_name == "root" or account.is_default_parent:
                 continue
             child_objects_to_remove = account.get_objects_to_remove(expected.accounts.get(account_name))
             for key, value in child_objects_to_remove.items():
@@ -231,6 +237,8 @@ class SlurmAccount(SlurmBase):
         super().__init__(name, specs=specs)
         self.users: dict[str, SlurmUser] = {}
         self.accounts: dict[str, SlurmAccount] = {}
+        self.parent_account_name = None
+        self.is_default_parent = None
 
     @staticmethod
     def new_from_sacctmgr(line):
@@ -262,7 +270,11 @@ class SlurmAccount(SlurmBase):
 
         self.specs += allocation.get_attribute_list(SLURM_SPECS_ATTRIBUTE_NAME)
 
-        self.parent_account_name = allocation.get_attribute(SLURM_PARENT_ATTRIBUTE_NAME)
+        self.parent_account_name = allocation.get_attribute(SLURM_PARENT_ATTRIBUTE_NAME) or SLURM_DEFAULT_PARENT
+
+        if self.parent_account_name == self.name:
+            logger.warning("Warn: top-level parent account is trying to parent itself.")
+            self.parent_account_name = None
 
         allocation_user_specs = allocation.get_attribute_list(SLURM_USER_SPECS_ATTRIBUTE_NAME)
         for u in allocation.allocationuser_set.filter(status__name="Active"):
@@ -294,7 +306,7 @@ class SlurmAccount(SlurmBase):
         return None
 
     def write(self, out):
-        if self.name != "root":
+        if self.name != "root" and not self.is_default_parent:
             self._write(out, f"Account - '{self.name}':{self.format_specs()}\n")
 
     def write_children(self, out):
