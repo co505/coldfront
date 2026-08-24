@@ -136,7 +136,7 @@ class SlurmCluster(SlurmBase):
             cluster.add_allocation(allocation, allocations, user_specs=user_specs)
         # assign child accounts to parents
         child_accounts = set()
-        for account in cluster.accounts.values():
+        for account in list(cluster.accounts.values()):
             if not account.parent_account_name:
                 continue
             parent_account = cluster.accounts.get(account.parent_account_name)

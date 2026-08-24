@@ -129,12 +129,10 @@ def add_auto_compute_allocation(project_obj):
             )
             return None
 
-        slurm_parent = project_obj.institution.lower()
-
         allocation_auto_compute_attribute_create(
             allocation_attribute_type_obj_slurm_parent,
             allocation_obj,
-            slurm_parent,
+            project_obj.institution.lower(),
         )
     except Exception as e:
         logger.error("Failed to add slurm parent value to auto_compute_allocation: %s", e)
