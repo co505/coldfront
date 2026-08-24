@@ -13,7 +13,6 @@ from coldfront.core.utils.common import import_from_settings
 SLURM_CLUSTER_ATTRIBUTE_NAME = import_from_settings("SLURM_CLUSTER_ATTRIBUTE_NAME", "slurm_cluster")
 SLURM_ACCOUNT_ATTRIBUTE_NAME = import_from_settings("SLURM_ACCOUNT_ATTRIBUTE_NAME", "slurm_account_name")
 SLURM_PARENT_ATTRIBUTE_NAME = import_from_settings("SLURM_PARENT_ATTRIBUTE_NAME", "slurm_parent")
-SLURM_DEFAULT_PARENT = import_from_settings("SLURM_DEFAULT_PARENT", None)
 SLURM_SPECS_ATTRIBUTE_NAME = import_from_settings("SLURM_SPECS_ATTRIBUTE_NAME", "slurm_specs")
 SLURM_USER_SPECS_ATTRIBUTE_NAME = import_from_settings("SLURM_USER_SPECS_ATTRIBUTE_NAME", "slurm_user_specs")
 SLURM_SACCTMGR_PATH = import_from_settings("SLURM_SACCTMGR_PATH", "/usr/bin/sacctmgr")
