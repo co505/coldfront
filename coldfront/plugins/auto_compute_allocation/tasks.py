@@ -32,6 +32,7 @@ AUTO_COMPUTE_ALLOCATION_SLURM_ATTR_TUPLE_TRAINING = import_from_settings(
     "AUTO_COMPUTE_ALLOCATION_SLURM_ATTR_TUPLE_TRAINING"
 )
 
+
 # automatically create a compute allocation, called by project_new signal
 def add_auto_compute_allocation(project_obj):
     """Method to add a compute allocation automatically upon project creation - uses signals for project creation"""
