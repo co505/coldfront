@@ -24,3 +24,4 @@ SLURM_SHORT_OPTION_NAMES = ENV.dict(
         "partition": "p",
     },
 )
+SLURM_PARENT_DEFAULT_ENABLED = ENV.bool("SLURM_PARENT_DEFAULT_ENABLED", default=False)

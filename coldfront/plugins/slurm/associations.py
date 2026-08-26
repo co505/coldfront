@@ -20,6 +20,7 @@ from coldfront.plugins.slurm.utils import (
     SLURM_PARENT_ATTRIBUTE_NAME,
     SLURM_SPECS_ATTRIBUTE_NAME,
     SLURM_USER_SPECS_ATTRIBUTE_NAME,
+    SLURM_PARENT_DEFAULT_ENABLED,
     SlurmError,
     parse_qos,
 )
@@ -141,10 +142,16 @@ class SlurmCluster(SlurmBase):
                 continue
             parent_account = cluster.accounts.get(account.parent_account_name)
             if not parent_account:
-                parent_account = SlurmAccount(account.parent_account_name)
-                parent_account.is_external_parent = True
-                cluster.accounts[account.parent_account_name] = parent_account
-
+                if SLURM_PARENT_DEFAULT_ENABLED:
+                    parent_account = SlurmAccount(account.parent_account_name)
+                    parent_account.is_external_parent = True
+                    cluster.accounts[account.parent_account_name] = parent_account
+                else:
+                    logger.error(
+                        f"Skipping account {account.name} - could not find parent allocation {SLURM_ACCOUNT_ATTRIBUTE_NAME}={account.parent_account_name} for allocation {SLURM_ACCOUNT_ATTRIBUTE_NAME}={account.name} in current resource. Is the parent allocation active?"
+                        # Don't have an easy way to get the resource here
+                    )
+                    continue
             parent_account.add_account(account)
             child_accounts.add(account.name)
         # remove child accounts from cluster accounts
